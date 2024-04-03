@@ -227,3 +227,170 @@ public class Simple {
 }
 ```
 
+12) Incorrect enumeration naming
+```java
+public enum ACTION {  // Enum types should be named using singular nouns in UpperCamelCase, reflecting what the enumeration represents. E.g. Action
+   DEPOSIT,
+   WITHDRAW
+}
+```
+
+13) Incorrect class naming
+```java
+public class constants { // Classes should be named in UpperCamelCase -> Constants
+
+   public static final String SUCCESS =
+           "Operation completed successfully";
+   public static final String NO_ACCOUNT_FOUND =
+           "Unable to find an account matching this sort code and account number";
+
+}
+```
+
+14) if statement can be simplified
+```java
+ public static boolean isSearchTransactionValid(TransactionInput transactionInput) {
+
+     if (!isSearchCriteriaValid(transactionInput.getSourceAccount()))
+        return false;
+
+     if (!isSearchCriteriaValid(transactionInput.getTargetAccount()))
+        return false;
+
+     if (transactionInput.getSourceAccount().equals(transactionInput.getTargetAccount()))
+        return false;
+
+     return true;
+}
+```
+
+This code can be simplified:
+```java
+ public static boolean isSearchTransactionValid(TransactionInput transactionInput) {
+
+     if (!isSearchCriteriaValid(transactionInput.getSourceAccount()))
+        return false;
+
+     if (!isSearchCriteriaValid(transactionInput.getTargetAccount()))
+        return false;
+
+     return !transactionInput.getSourceAccount().equals(transactionInput.getTargetAccount());
+}
+```
+
+15) *public* modifier is redundant for interface methods
+```java
+public interface TransactionService {
+   public TransactionResponse processTransaction(TransactionRequest transactionRequest) throws TransactionProcessingException;
+}
+```
+
+16) Instantiable utility class
+```java
+public class InputValidator {
+
+   public static boolean isAccountNoValid(String accountNo) {
+      return Constants.ACCOUNT_NUMBER_PATTERN.matcher(accountNo).find();
+   }
+
+   public static boolean isCreateAccountCriteriaValid(CreateAccountInput createAccountInput) {
+      return (!createAccountInput.getBankName().isBlank() && !createAccountInput.getOwnerName().isBlank());
+   }
+}
+```
+
+Default constructor for utility class should be suppressed:
+```java
+public class InputValidator {
+    
+   private InputValidator() {}
+   
+   public static boolean isAccountNoValid(String accountNo) {
+      return Constants.ACCOUNT_NUMBER_PATTERN.matcher(accountNo).find();
+   }
+
+   public static boolean isCreateAccountCriteriaValid(CreateAccountInput createAccountInput) {
+      return (!createAccountInput.getBankName().isBlank() && !createAccountInput.getOwnerName().isBlank());
+   }
+}
+```
+
+17) Synchronization on non-final field
+```java
+public class Counter {
+    
+   private Integer count = 0;
+   
+   public void increment() {
+      synchronized (count) {
+          count++;
+      }
+   }
+}
+```
+Synchronizing on a non-final field is risky because the field can be changed, leading to unexpected behaviour.
+
+18) String concatenation inside the loop
+```java
+public class StringUtils {
+   
+   public static String reverseString(String str) {
+      String reversed = "";
+      for (int i = str.length() - 1; i >= 0; i--) {
+          reversed += str.charAt(i);
+      }
+      return reversed;
+   }
+}
+```
+
+String concatenation is used inside the loop which can result in performance issues when dealing with large strings.
+It's better to use StringBuilder for better performance and efficiency:
+```java
+public class StringUtils {
+   
+   public static String reverseString(String str) {
+      StringBuilder reversed = new StringBuilder();
+      for (int i = str.length() - 1; i >= 0; i--) {
+          reversed.append(str.charAt(i));
+      }
+      return reversed.toString();
+   }
+}
+```
+
+19) try-finally with AutoClosable resources
+```java
+static void copy(String src, String dst) throws IOException {
+    InputStream in = new FileInputStream(src);
+    try {
+        OutputStream out = new FileOutputStream(dst);
+        
+        try {
+            byte[] buf = new byte[BUFFER_SIZE];
+            int n;
+            
+            while ((n = in.read(buf)) >= 0)
+                out.write(buf, 0, n);
+        } finally {
+            out.close();
+        }
+    } finally {
+       in.close();
+    }
+}
+```
+
+It's preferable to use try-with-resources instead:
+```java
+static void copy(String src, String dst) throws IOException {
+    try (InputStream in = new FileInputStream(src);
+    OutputStream out = new FileOutputStream(dst)) {
+        byte[] buf = new byte[BUFFER_SIZE];
+        int n;
+        
+        while ((n = in.read(buf)) >= 0)
+            out.write(buf, 0, n);
+    }
+}
+```
